@@ -18,10 +18,9 @@ static void ShowHelp()
 
 static void ExitWithMessage(string message, int exitCode = 1)
 {
-    Console.WriteLine(message);
+    Console.WriteLine(message, exitCode == 0 ? Console.Out : Console.Error);
     Environment.Exit(exitCode);
 }
-
 
 if (args.Length <= 1) ShowHelp();
 
@@ -44,30 +43,31 @@ try
     {
         if (args.Length != 2) ExitWithMessage("Find needs 2 parameters");
 
-        using FileStream stream = new(inputPath, FileMode.Open, FileAccess.Read);
+        DoABCDefineTag tag = Utils.GetDoABCDefineTag(inputPath) ?? throw new Exception("Could not find abc tag");
+        using (MemoryStream abcBytes = new(tag.ABCData))
         {
-            DoABCDefineTag tag = Utils.GetDoABCDefineTag(inputPath) ?? throw new Exception("Could not find abc tag");
-            using MemoryStream abcBytes = new(tag.ABCData);
             AbcFile abcFile = AbcFile.Read(abcBytes);
             uint decryptionKey = Utils.FindDecryptionKey(abcFile) ?? throw new Exception("Could not find key in abc data");
             Console.WriteLine(decryptionKey);
         }
+
         Environment.Exit(0);
     }
 
     if (mode == "-D" || mode == "--decrypt")
     {
         if (args.Length != 4) ExitWithMessage("Decrypt needs 4 parameters");
-        using FileStream inStream = new(inputPath, FileMode.Open, FileAccess.Read);
-        using SwzReader reader = new(inStream, uint.Parse(key));
-        while(reader.HasNext())
+        using (FileStream inStream = new(inputPath, FileMode.Open, FileAccess.Read))
         {
-            string content = reader.ReadFile();
-            string name = SwzUtils.GetFileName(content);
-            string finalPath = Path.Combine(outputPath, name);
+            using SwzReader reader = new(inStream, uint.Parse(key));
             Directory.CreateDirectory(outputPath);
-            using StreamWriter outputFile = new(finalPath);
-            outputFile.Write(content);
+            while (reader.HasNext())
+            {
+                string content = reader.ReadFile();
+                string name = SwzUtils.GetFileName(content);
+                string finalPath = Path.Combine(outputPath, name);
+                File.WriteAllText(finalPath, content);
+            }
         }
 
         Environment.Exit(0);
@@ -78,14 +78,16 @@ try
         if (args.Length != 4 && args.Length != 5) ExitWithMessage("Encrypt needs 4 or 5 parameters");
         uint parsedSeed = 0;
         if (args.Length == 5) parsedSeed = uint.Parse(seed);
-        List<string> files = [];
-        foreach (string fileName in Directory.EnumerateFiles(inputPath))
-            files.Add(File.ReadAllText(fileName));
 
-        using FileStream outStream = new(outputPath, FileMode.Create, FileAccess.Write);
-        using SwzWriter writer = new(outStream, uint.Parse(key), parsedSeed);
-        foreach (string file in files)
-            writer.WriteFile(file);
+        using (FileStream outStream = new(outputPath, FileMode.Create, FileAccess.Write))
+        {
+            using SwzWriter writer = new(outStream, uint.Parse(key), parsedSeed);
+            foreach (string filePath in Directory.EnumerateFiles(inputPath))
+            {
+                string fileContent = File.ReadAllText(filePath);
+                writer.WriteFile(fileContent);
+            }
+        }
 
         Environment.Exit(0);
     }
@@ -94,9 +96,9 @@ try
 }
 catch (Exception e)
 {
-        Console.WriteLine(e.Message, Console.Error);
+    Console.WriteLine(e.Message, Console.Error);
 #if DEBUG
-        Console.WriteLine(e.StackTrace ?? "", Console.Error);
+    Console.WriteLine(e.StackTrace ?? "", Console.Error);
 #endif
-        Environment.Exit(1);
+    Environment.Exit(1);
 }
