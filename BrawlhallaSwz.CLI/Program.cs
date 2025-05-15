@@ -8,9 +8,9 @@ static void ShowHelp()
     Console.WriteLine(
     @"Usage: bh-swz [mode] [input] [output] [key] [seed]
         mode:
-        -F --find-key [path to bhair]
-        -D --decrypt [path to swz] [output directory] [key]
-        -E --encrypt [input directory] [output swz path] [key] <seed>
+        -F, --find-key [path to bhair]
+        -D, --decrypt [path to swz] [output directory] [key]
+        -E, --encrypt [input directory] [output swz path] [key] <seed>
         --help: show this message"
     );
     Environment.Exit(0);
