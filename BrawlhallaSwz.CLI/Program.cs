@@ -1,7 +1,6 @@
-using AbcDisassembler;
+using AbcDisassembler.Swf.Tags;
 using BrawlhallaSwz;
 using BrawlhallaSwz.CLI;
-using SwfLib.Tags.ActionsTags;
 
 static void ShowHelp()
 {
@@ -43,13 +42,8 @@ try
     {
         if (args.Length != 2) ExitWithMessage("Find needs 2 parameters");
 
-        DoABCDefineTag tag = Utils.GetDoABCDefineTag(inputPath) ?? throw new Exception("Could not find abc tag");
-        using (MemoryStream abcBytes = new(tag.ABCData))
-        {
-            AbcFile abcFile = AbcFile.Read(abcBytes);
-            uint decryptionKey = Utils.FindDecryptionKey(abcFile) ?? throw new Exception("Could not find key in abc data");
-            Console.WriteLine(decryptionKey);
-        }
+        DoAbcTag tag = Utils.GetDoAbcTag(inputPath) ?? throw new Exception("Could not find abc tag");
+        uint decryptionKey = Utils.FindDecryptionKey(tag.AbcFile) ?? throw new Exception("Could not find key in abc data");
 
         Environment.Exit(0);
     }

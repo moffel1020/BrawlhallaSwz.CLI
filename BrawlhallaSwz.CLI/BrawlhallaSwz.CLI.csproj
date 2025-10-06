@@ -21,12 +21,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SwfLib" Version="1.0.5" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\BrawlhallaSwz\BrawlhallaSwz\BrawlhallaSwz.csproj" />
-    <ProjectReference Include="..\AbcDisassembler\AbcDisassembler\AbcDisassembler.csproj" />
+    <ProjectReference Include="..\AbcDisassembler\src\AbcDisassembler\AbcDisassembler.csproj" />
+    <ProjectReference Include="..\AbcDisassembler\src\AbcDisassembler.Swf\AbcDisassembler.Swf.csproj" />
   </ItemGroup>
 
 

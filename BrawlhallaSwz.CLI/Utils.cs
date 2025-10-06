@@ -1,7 +1,8 @@
 using AbcDisassembler;
-using SwfLib;
-using SwfLib.Tags;
-using SwfLib.Tags.ActionsTags;
+using AbcDisassembler.Instructions;
+using AbcDisassembler.Multinames;
+using AbcDisassembler.Swf;
+using AbcDisassembler.Swf.Tags;
 
 namespace BrawlhallaSwz.CLI;
 
@@ -39,19 +40,13 @@ public class Utils
         return null;
     }
 
-    public static DoABCDefineTag? GetDoABCDefineTag(string swfPath)
+    public static DoAbcTag? GetDoAbcTag(string swfPath)
     {
-        SwfFile? swf;
-        using (FileStream stream = new(swfPath, FileMode.Open, FileAccess.Read))
-            swf = SwfFile.ReadFrom(stream);
-
-        if (swf is not null)
+        using FileStream stream = new(swfPath, FileMode.Open, FileAccess.Read);
+        foreach (ITag tag in SwfFile.ReadTags(stream))
         {
-            foreach (SwfTagBase tag in swf.Tags)
-            {
-                if (tag is DoABCDefineTag abcTag)
-                    return abcTag;
-            }
+            if (tag is DoAbcTag doAbcTag)
+                return doAbcTag;
         }
 
         return null;
